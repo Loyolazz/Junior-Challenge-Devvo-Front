@@ -28,8 +28,10 @@ export default function Dashboard() {
     }, [user]);
 
     const handleLogout = async () => {
-        await signOut();
-        router.push("/auth/signin");
+        await signOut({
+            redirect: false,
+        });
+        router.replace("/auth/signin");
     };
 
     return (
@@ -37,8 +39,8 @@ export default function Dashboard() {
             <Image className={"my-10"} src={logo} alt="logo" width={300} />
 
             <div className={"w-[92%] h-[70%] flex flex-col items-end bg-[#2C4375] rounded-xl mx-3"}>
-                <div className={"my-5 flex justify-between w-[90%] px-8 bg-[#081728] rounded-lg shadow-md h-[12%] m-12"}>
-                    <div className={"flex items-center"}>
+                <div className={"my-5 flex md:flex-row sm:flex-col-reverse gap-4 justify-between w-[90%] px-8 bg-[#081728] rounded-lg shadow-md py-2 m-12"}>
+                    <div className={"flex items-center sm:w-full md:w-auto"}>
                         <Button
                             style={"text-[15px] font-light"}
                             color={"#2C7C2E"}

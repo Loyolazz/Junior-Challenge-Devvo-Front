@@ -1,5 +1,5 @@
 "use client";
-import React, {Dispatch, SetStateAction, useEffect, useRef, useState} from "react";
+import React, { useEffect, useState} from "react";
 import TextInput from "@/app/components/TextInput";
 import Button from "@/app/components/Button";
 import Api from "@/services/api";
@@ -34,7 +34,7 @@ export default function RingModal({mode, initiaData, modalOpen, setModalOpen, se
     const [image, setImage] = useState(initiaData?.imagem || "");
     const [history, setHistory] = useState<any[]>([]);
 
-    const ringHistory = async () => {
+    const ringHistory = async (id: string) => {
         if (!user) return;
         const api = new Api(user.token);
         try {
@@ -44,17 +44,31 @@ export default function RingModal({mode, initiaData, modalOpen, setModalOpen, se
                 return;
             }
             const rings = response.data.data;
-            console.log(rings[0], 'aw')
+            const selectedRingWithHistory = rings.find((ring: any) => ring.id === initiaData?.id);
+            if (selectedRingWithHistory) {
+                setHistory(selectedRingWithHistory.HistoricoPortador || []);
+            }
         } catch (error) {
             console.error("Erro ao buscar anéis:", error);
         }
     };
 
+
     useEffect(() => {
-        if (modalOpen) {
-            ringHistory().then(() => {});
+        if (initiaData) {
+            setName(initiaData.nome || "");
+            setPower(initiaData.poder || "");
+            setCarrier(initiaData.portador || "");
+            setForgedBy(initiaData.forjadoPor || "");
+            setImage(initiaData.imagem || "");
         }
-    }, [modalOpen]);
+    }, [initiaData]);
+
+    useEffect(() => {
+        if (modalOpen && initiaData?.id) {
+            ringHistory(initiaData.id).then();
+        }
+    }, [modalOpen, initiaData?.id])
 
 
     const handleCreateRing = async () => {
@@ -150,7 +164,7 @@ export default function RingModal({mode, initiaData, modalOpen, setModalOpen, se
                         <ul className="list-disc ml-4">
                             {history.map((historyItem) => (
                                 <li key={historyItem.id}>
-                                    Portador: {historyItem.portador}, Data: {new Date(historyItem.data).toLocaleDateString()}
+                                    Portador: {historyItem.portador}, Data: {new Date(historyItem.data).toLocaleDateString() }
                                 </li>
                             ))}
                         </ul>

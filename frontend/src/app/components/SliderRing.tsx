@@ -1,55 +1,31 @@
-'use-client'
-import React, { useState, useEffect } from "react";
+"use-client"
+import React, {useState, useEffect, useRef} from "react";
 import Slider from "react-slick";
 import RingModal from "@/app/components/RingModal";
 import { FaTrash, FaEdit } from 'react-icons/fa';
 import Api from "@/../src/services/api";
 import ModalMensagens from "@/app/components/ModalMensagens";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import {useComponentSize} from "@/hooks/useComponentSize.hooks";
+import {useWindowSize} from "@/hooks/useWindowSize.hooks";
+import {NextArrow, PrevArrow} from "@/app/components/Arrows";
 
 export default function SliderRing({ rings = [], setRings }: any) {
 
-    function SampleNextArrow(props: { className: string; style: React.CSSProperties; onClick: () => void }) {
-        const { className, style, onClick } = props;
-        return (
-            <div
-                className={className}
-                style={{
-                    ...style,
-                    display: "block",
-                    background: "#4A9EFF",
-                    borderRadius: "10px",
-                    padding: "10px",
-                    width: "39px",
-                    height: "39px",
-                    marginLeft: "20px",
-                }}
-                onClick={onClick}
-            />
-        );
-    }
+    const swiperRef = useRef(null);
+    const windowSize = useWindowSize();
+    const swiperSize = useComponentSize(swiperRef);
 
-    function SamplePrevArrow(props: { className: string; style: React.CSSProperties; onClick: () => void }) {
-        const { className, style, onClick } = props;
-        return (
-            <div
-                className={className}
-                style={{
-                    ...style,
-                    display: "block",
-                    background: "#4A9EFF",
-                    borderRadius: "10px",
-                    padding: "10px",
-                    width: "39px",
-                    height: "39px",
-                }}
-                onClick={onClick}
-            />
-        );
-    }
+    const numberOfSlidesRender = (winSize: number) => {
+        if (winSize > 1400) {
+            return 3;
+        }
+        if (winSize > 1000) {
+            return 2;
+        }
+        return 1;
+    };
 
-    const router = useRouter();
     const session = useSession();
     const user: any = session.data;
 
@@ -60,17 +36,18 @@ export default function SliderRing({ rings = [], setRings }: any) {
 
     const settings = {
         dots: true,
-        infinite: false,
+        infinite: true,
         speed: 500,
-        slidesToShow: 3,
-        slidesToScroll: 1,
+        slidesToShow: windowSize.width ? numberOfSlidesRender(windowSize.width) : 3,
+        slidesToScroll: windowSize.width ? numberOfSlidesRender(windowSize.width) : 1,
         autoplay: true,
         arrows: true,
-        nextArrow: <SampleNextArrow className={''} style={{}} onClick={() => { }} />,
-        prevArrow: <SamplePrevArrow className={''} style={{}} onClick={() => { }} />,
+        nextArrow: <NextArrow className={''} style={{}} onClick={() => { }} />,
+        prevArrow: <PrevArrow className={''} style={{}} onClick={() => { }} />,
     };
 
     const handleEditClick = (ring: any) => {
+        console.log("Dados do anel selecionado:", ring);
         setSelectedRing(ring);
         setModalOpenEdit(true);
     };
@@ -110,7 +87,7 @@ export default function SliderRing({ rings = [], setRings }: any) {
             }
         };
 
-        fetchRings();
+        fetchRings().then();
     }, [user?.token]);
 
     return (

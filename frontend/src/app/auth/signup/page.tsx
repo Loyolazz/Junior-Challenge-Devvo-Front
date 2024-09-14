@@ -9,32 +9,59 @@ import Link from "next/link";
 import Api from "@/services/api";
 import { useRouter } from "next/navigation";
 import background from "@/../public/background.png";
+import ModalMensagens from "@/app/components/ModalMensagens";
+import { MESSAGES } from "@/utils/signup.msg";
 
 export default function SignUp() {
     const api = new Api();
     const router = useRouter();
 
-    const [name, setName] = useState("");
+    const [nome, setNome] = useState("");
     const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
+    const [senha, setSenha] = useState("");
+    const [confirmSenha, setConfirmSenha] = useState("");
     const [loading, setLoading] = useState(false);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [mensagens, setMensagens] = useState<string[]>([]);
+
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const senhaRegex = /^.{6,10}$/;
 
     const handleSignUp = async () => {
-        if (!name || !email || !password || !confirmPassword) return alert("Preencha todos os campos!");
-        if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email)) return alert("E-Mail Inválido");
-        if (!/^.{6,10}$/.test(password)) return alert("A senha deve conter de 6 a 10 caracteres");
-        if (password !== confirmPassword) return alert("As senhas não coincidem!");
+        let newMensagens: string[] = [];
+
+        if (!nome || !email || !senha || !confirmSenha) {
+            newMensagens.push(MESSAGES.camposObrigatorios);
+        }
+        if (!emailRegex.test(email)) {
+            newMensagens.push(MESSAGES.emailInvalido);
+        }
+        if (!senhaRegex.test(senha)) {
+            newMensagens.push(MESSAGES.senhaInvalida);
+        }
+        if (senha !== confirmSenha) {
+            newMensagens.push(MESSAGES.senhasNaoCoincidem);
+        }
+
+        if (newMensagens.length > 0) {
+            setMensagens(newMensagens);
+            setModalOpen(true);
+            return;
+        }
 
         setLoading(true);
         const res = await api.createUser({
-            name,
+            nome,
             email,
-            password,
+            senha,
         });
         setLoading(false);
 
-        if (!res) return alert("Erro ao criar usuário");
+        if (!res) {
+            setMensagens([MESSAGES.erroCriarUsuario]);
+            setModalOpen(true);
+            return;
+        }
 
         router.push("/auth/signin");
     };
@@ -46,32 +73,32 @@ export default function SignUp() {
                 style={{ backgroundImage: `url(${background.src})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
             ></div>
             <div
-                className="relative bg-black flex p-10 shadow border rounded-lg max-w-[450px] w-full justify-center items-center gap-3 flex-col z-10"
+                className="relative bg-[#14263A] flex p-10 shadow border rounded-lg max-w-[450px] w-full justify-center items-center gap-3 flex-col z-10"
             >
                 <Image src={logo} alt="logo" width={500} />
                 <div className="w-full">
                     <TextInput
-                        state={{ current: name, setValue: setName }}
+                        state={{ current: nome, setValue: setNome }}
                         type="text"
                         label="Seu nome completo:"
                     />
                     <TextInput
-                        regex={/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i}
                         state={{ current: email, setValue: setEmail }}
                         type="email"
                         label="E-mail:"
+                        regex={emailRegex}
                     />
                     <TextInput
-                        regex={/^.{6,10}$/}
-                        state={{ current: password, setValue: setPassword }}
+                        state={{ current: senha, setValue: setSenha }}
                         type="password"
                         label="Senha:"
+                        regex={senhaRegex}
                     />
                     <TextInput
-                        regex={/^.{6,10}$/}
-                        state={{ current: confirmPassword, setValue: setConfirmPassword }}
+                        state={{ current: confirmSenha, setValue: setConfirmSenha }}
                         type="password"
                         label="Confirme sua senha:"
+                        regex={senhaRegex}
                     />
                 </div>
                 <div className="w-full flex flex-col">
@@ -90,6 +117,12 @@ export default function SignUp() {
                     {loading && <p className="mt-2 text-cyan-900 text-sm">Aguarde, estamos criando sua conta...</p>}
                 </div>
             </div>
+
+            <ModalMensagens
+                mensagens={mensagens}
+                modalOpen={modalOpen}
+                setModalOpen={setModalOpen}
+            />
         </div>
     );
 }

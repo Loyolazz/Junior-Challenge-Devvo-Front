@@ -14,9 +14,8 @@ interface ITextInput {
 
 export default function TextInput({ enable = true, state, type, label, regex, onChange }: ITextInput) {
     return (
-        <label className={"flex flex-col text-amber-500 text-sm gap-2 my-2"}>
+        <label className={"flex flex-col text-yellow-600 text-sm gap-2 my-2"}>
             <p>
-                {" "}
                 {label} <span className="text-red-500">*</span>
             </p>
             <input
@@ -25,13 +24,10 @@ export default function TextInput({ enable = true, state, type, label, regex, on
                 value={state.current}
                 className={"border-2 p-2 rounded-lg"}
                 type={type}
-                style={
-                    regex
-                        ? {
-                              color: regex.test(state.current) ? "black" : "red",
-                          }
-                        : {}
-                }
+                style={{
+                    color: "black", // Define a cor do texto como preto
+                    borderColor: regex && !regex.test(state.current) ? "red" : "", // Ajusta a cor da borda se o regex não for atendido
+                }}
             />
         </label>
     );

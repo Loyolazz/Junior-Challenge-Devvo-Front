@@ -6,7 +6,7 @@ export interface User {
 }
 
 export interface CreateUser {
-    name: string;
+    nome: string;
     email: string;
-    password: string;
+    senha: string;
 }

@@ -38,15 +38,15 @@ export default class Api {
     }
 
     async createUser(userData: CreateUser) {
-        const res = await this.api.post("/user", userData);
+        const res = await this.api.post("/signup", userData);
         if (res.status === 201) {
             return true;
         }
     }
 
-    async login(credentials: { email: string; password: string }) {
-        const res = await this.api.post("/auth/login", credentials);
-        return res;
+
+    async login(credentials: { email: string; senha: string }) {
+        return await this.api.post('/auth/login', credentials);
     }
 
     async updateRing(data: updateRing) {
@@ -54,7 +54,12 @@ export default class Api {
     }
 
     async deleteRing(id: string) {
-        await this.api.delete("/anel/" + id);
+        try {
+            const { data  } = await this.api.delete(`/anel/${id}`);
+            console.log(data .message);
+            return data ;
+        } catch (error: any) {
+            console.error(error.response?.data?.error);
+        }
     }
-
 }

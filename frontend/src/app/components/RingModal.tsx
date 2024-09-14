@@ -32,124 +32,150 @@ export default function RingModal({mode, initiaData, modalOpen, setModalOpen, se
     const [carrier, setCarrier] = useState(initiaData?.portador || "");
     const [forgedBy, setForgedBy] = useState(initiaData?.forjadoPor || "");
     const [image, setImage] = useState(initiaData?.imagem || "");
+    const [history, setHistory] = useState<any[]>([]);
+
+    const ringHistory = async () => {
+        if (!user) return;
+        const api = new Api(user.token);
+        try {
+            const response = await api.getRing();
+            if (response.data.error) {
+                console.error("Erro ao recuperar os anéis:", response.data.error);
+                return;
+            }
+            const rings = response.data.data;
+            console.log(rings[0], 'aw')
+        } catch (error) {
+            console.error("Erro ao buscar anéis:", error);
+        }
+    };
+
+    useEffect(() => {
+        if (modalOpen) {
+            ringHistory().then(() => {});
+        }
+    }, [modalOpen]);
 
 
     const handleCreateRing = async () => {
-            if (!user) return;
+        if (!name || !power || !carrier || !forgedBy || !image) {
+            console.error("Todos os campos são obrigatórios");
+            return;
+        }
+        try {
             const api = new Api(user.token);
-            if (mode == "create") {
-                const ring = await api.createRing({
+            let ring;
+            if (mode === "create") {
+                ring = await api.createRing({
                     nome: name,
                     poder: power,
                     portador: carrier,
                     forjadoPor: forgedBy,
                     imagem: image,
                 });
-                if (ring) {
-                    setRings((prevState: any) => {
-                        return [...prevState, ring];
-                    });
-                }
-            } else {
-                if (initiaData) {
-                    const ring = await api.updateRing({
-                        id: initiaData?.id,
-                        nome: name,
-                        poder: power,
-                        portador: carrier,
-                        forjadoPor: forgedBy,
-                        imagem: image,
-                    });
-                    // @ts-ignore
-                    if (ring) {
-                        setRings((prevState: any) => {
-                            return [...prevState, ring];
-                        });
-                    }
-                }
+            } else if (initiaData) {
+                ring = await api.updateRing({
+                    id: initiaData?.id,
+                    nome: name,
+                    poder: power,
+                    portador: carrier,
+                    forjadoPor: forgedBy,
+                    imagem: image,
+                });
             }
-            router.refresh();
-            setModalOpen(false);
+            if (ring) {
+                setRings((prevState: any) => [...prevState, ring]);
+            }
+        } catch (error) {
+            console.error("Erro ao criar o anel:", error);
         }
-    ;
+        router.refresh();
+        setModalOpen(false);
+    };
 
     return (
         <div
             className={
-                "w-screen h-screen absolute top-0 z-10 flex backdrop-blur-sm bg-black bg-opacity-30 justify-center items-center"
-            }
-            style={{display: modalOpen ? "flex" : "none"}}
-        >
+            "w-screen h-screen absolute top-0 z-10 flex backdrop-blur-sm bg-black bg-opacity-50 justify-center items-center"}
+            style={{display: modalOpen ? "flex" : "none"}}>
             <div
                 className={
-                    "bg-white flex p-10 shadow border relative rounded-lg max-w-[450px] w-full justify-center items-center gap-3 flex-col"
-                }
-            >
-                <button onClick={() => setModalOpen(false)} className={"text-end absolute top-5 right-8 text-2xl"}>
-                    {" × "}
+                    "bg-gradient-to-r from-blue-900 to-indigo-800 text-white shadow-lg border border-blue-300 relative rounded-lg max-w-[450px] w-full p-10 flex justify-center items-center gap-3 flex-col"
+                }>
+                <button onClick={() => setModalOpen(false)} className={"absolute top-5 right-8 text-3xl text-white"}>
+                    {"×"}
                 </button>
-                <h2 className={"text-2xl font-semibold"}>{mode == "create" ? "Novo Anel" : "Editar Anel"}</h2>
+                <h2 className={"text-3xl font-semibold"}>{mode == "create" ? "Novo Anel" : "Editar Anel"}</h2>
                 <div className={"w-full"}>
-                    <p className={"text-lg text-gray-600 font-medium"}> Dados do Anel </p>
+                    <p className={"text-lg text-gray-200 font-medium"}>Dados do Anel</p>
                     <TextInput
-
                         state={{current: name, setValue: setName}}
                         type={"text"}
                         label={`Nome: `}
-                    ></TextInput>
+                    />
                     <TextInput
                         state={{current: power, setValue: setPower}}
                         type={"text"}
                         label={"Poder: "}
-                    ></TextInput>
+                    />
                     <TextInput
                         state={{current: carrier, setValue: setCarrier}}
                         type={"text"}
                         label={"Portador: "}
-                    ></TextInput>
-
-                    <label>Forjado Por:</label>
-
-                    <select onChange={(value) => {
-                        setForgedBy(value.currentTarget.value)
-                    }} value={forgedBy} name="forgedBy" id="cars">
-                        {
-                            ForgedBy.map(
-                                (forged, index) => (
-                                    <option key={index} value={forged}>
-                                        {forged}
-                                    </option>
-                                )
-                            )
-                        }
+                    />
+                    <label className="block text-gray-300">Forjado Por:</label>
+                    <select
+                        className="mt-2 p-2 bg-blue-800 text-white rounded-lg"
+                        onChange={(value) => {
+                            setForgedBy(value.currentTarget.value);
+                        }}
+                        value={forgedBy}
+                        name="forgedBy"
+                    >
+                        {ForgedBy.map((forged, index) => (
+                            <option key={index} value={forged}>
+                                {forged}
+                            </option>
+                        ))}
                     </select>
-
                     <TextInput
                         state={{current: image, setValue: setImage}}
                         type={"text"}
                         label={"Imagem:"}
-                    ></TextInput>
+                    />
                 </div>
-                <div className={"flex flex-row justify-end gap-2"}>
-                    <div className={"flex flex-col w-full items-center mt-4"}>
-                        <Button
-                            color={"white"}
-                            border
-                            label={"Cancelar"}
-                            textColor={"gray-500"}
-                            onClick={() => setModalOpen(false)}
-                        />
-                    </div>
-                    <div className={"flex flex-col w-full items-center mt-4"}>
-                        <Button
-                            color={"#0066ce"}
-                            border
-                            label={"Salvar"}
-                            onClick={handleCreateRing}
-                        />
-                    </div>
+                <div className="w-full mt-4">
+                    <p className="text-lg text-gray-200 font-medium">Histórico de Portadores:</p>
+                    {Array.isArray(history) && history.length > 0 ? (
+                        <ul className="list-disc ml-4">
+                            {history.map((historyItem) => (
+                                <li key={historyItem.id}>
+                                    Portador: {historyItem.portador}, Data: {new Date(historyItem.data).toLocaleDateString()}
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p className="text-sm">Sem histórico de portadores.</p>
+                    )}
+                </div>
+
+                <div className={"flex flex-row justify-end gap-4 mt-4"}>
+                    <Button
+                        color={"#2f3330"}
+                        border
+                        label={"Cancelar"}
+                        textColor={"black"}
+                        onClick={() => setModalOpen(false)}
+                    />
+                    <Button
+                        color={"#28fc03"}
+                        label={"Salvar"}
+                        textColor={"black"}
+                        onClick={handleCreateRing}
+                    />
                 </div>
             </div>
         </div>
     );
+
 }

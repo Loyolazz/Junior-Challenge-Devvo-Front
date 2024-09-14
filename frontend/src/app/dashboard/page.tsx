@@ -4,15 +4,17 @@ import Image from "next/image";
 import Button from "@/app/components/Button";
 import logo from "../../../public/logo.svg";
 import Api from "@/services/api";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import RingModal from "../components/RingModal";
 import SliderRing from "@/app/components/SliderRing";
+import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
     const session = useSession();
     const user: any = session.data;
     const [modalOpen, setModalOpen] = useState(false);
     const [rings, setRings] = useState([]);
+    const router = useRouter();
 
     useEffect(() => {
         if (!user) return;
@@ -23,28 +25,44 @@ export default function Dashboard() {
             }
             setRings(response.data.data);
         });
-        console.log(rings);
     }, [user]);
+
+    const handleLogout = async () => {
+        await signOut();
+        router.push("/auth/signin");
+    };
 
     return (
         <div className={"flex flex-col items-center h-full w-full"}>
-            <Image className={"my-10"} src={logo} alt="logo" width={300}/>
-            <div className={"w-full bg-gray-200 flex flex-col items-end"}>
-                <div className={"py-4 px-8"}>
-                    <Button
-                        style={"text-[15px] font-light"}
-                        color={"#0066ce"}
-                        label={"+ Novo Lead"}
-                        onClick={() => setModalOpen(true)}
-                    />
+            <Image className={"my-10"} src={logo} alt="logo" width={300} />
+
+            <div className={"w-[92%] h-[70%] flex flex-col items-end bg-[#2C4375] rounded-xl mx-3"}>
+                <div className={"my-5 flex justify-between w-[90%] px-8 bg-[#081728] rounded-lg shadow-md h-[12%] m-12"}>
+                    <div className={"flex items-center"}>
+                        <Button
+                            style={"text-[15px] font-light"}
+                            color={"#2C7C2E"}
+                            label={"+ Forjar Anel"}
+                            onClick={() => setModalOpen(true)}
+                        />
+                    </div>
+                    <div className={"flex items-center"}>
+                        <p className={"text-white mr-4"}>Bem vindo, <span className={'font-bold'}>{user?.email}</span></p>
+                        <button
+                            className={"bg-red-500 text-white py-2 px-4 rounded"}
+                            onClick={handleLogout}
+                        >
+                            Logout
+                        </button>
+                    </div>
+                </div>
+
+                <div className={"w-full flex justify-center flex-row items-center"}>
+                <SliderRing rings={rings} setRings={setRings} />
                 </div>
             </div>
 
-            <div className={'w-full flex justify-center flex-col items-center'}>
-                <SliderRing rings={rings} setRings={setRings}/>
-            </div>
-
-            <RingModal setRings={setRings} mode="create" modalOpen={modalOpen} setModalOpen={setModalOpen}/>
+            <RingModal setRings={setRings} mode="create" modalOpen={modalOpen} setModalOpen={setModalOpen} />
         </div>
     );
 }

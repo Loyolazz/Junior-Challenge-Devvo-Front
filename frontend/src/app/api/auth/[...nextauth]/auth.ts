@@ -9,15 +9,16 @@ export const nextAuthOptions: NextAuthOptions = {
             name: 'AneisDoPoder',
             credentials: {
                 email: { label: 'E-mail:', type: 'text' },
-                password: { label: 'Senha:', type: 'password' },
+                senha: { label: 'Senha:', type: 'text' },
             },
             async authorize(credentials, _) {
                 const api = new Api();
+                console.log(credentials, 'authorization')
                 const response = await api.login({
                     //@ts-ignore
                     email: credentials?.email,
                     //@ts-ignore
-                    password: credentials?.password,
+                    senha: credentials?.senha,
 
                 });
                 const {authorization}: any = response.data;
